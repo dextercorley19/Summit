@@ -80,6 +80,9 @@ export function RepositorySidebar({ onSelectRepo, githubToken }: RepositorySideb
     setError(null)
 
     try {
+      console.log("Fetching repositories from:", `${API_BASE_URL}/api/repositories`);
+      console.log("Using GitHub token:", githubToken ? "Token exists" : "No token");
+      
       // Use our backend API instead of directly calling GitHub
       const response = await fetch(`${API_BASE_URL}/api/repositories`, {
         method: "GET",
@@ -87,10 +90,15 @@ export function RepositorySidebar({ onSelectRepo, githubToken }: RepositorySideb
           "Content-Type": "application/json",
           "GitHub-Token": githubToken,
         },
-      })
+      });
 
+      console.log("Response status:", response.status);
+      console.log("Response ok:", response.ok);
+      
       if (!response.ok) {
-        throw new Error(`Failed to fetch repositories: ${response.statusText}`)
+        const errorText = await response.text();
+        console.error("Error response:", errorText);
+        throw new Error(`Failed to fetch repositories: ${response.status} ${response.statusText} - ${errorText}`);
       }
 
       const data = await response.json()
