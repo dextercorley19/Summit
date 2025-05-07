@@ -23,6 +23,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { useToast } from "@/hooks/use-toast"
+import { API_BASE_URL } from "@/lib/utils"
 
 interface Repository {
   full_name: string
@@ -80,11 +81,11 @@ export function RepositorySidebar({ onSelectRepo, githubToken }: RepositorySideb
 
     try {
       // Use our backend API instead of directly calling GitHub
-      const response = await fetch("http://localhost:8000/api/repositories", {
+      const response = await fetch(`${API_BASE_URL}/api/repositories`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${githubToken}`,
+          "GitHub-Token": githubToken,
         },
       })
 
@@ -94,8 +95,21 @@ export function RepositorySidebar({ onSelectRepo, githubToken }: RepositorySideb
 
       const data = await response.json()
 
-      if (data.repositories && Array.isArray(data.repositories)) {
-        // Add default branches and lastActive if not provided
+      // Check if data is already an array (direct response format)
+      if (Array.isArray(data)) {
+        const formattedRepos = data.map((repo: any) => ({
+          full_name: repo.full_name,
+          owner: repo.full_name.split('/')[0],
+          name: repo.name,
+          branches: repo.branches || ["main"],
+          lastActive: repo.lastActive || "Recently updated",
+        }))
+        
+        setRepositories(formattedRepos)
+        setFilteredRepos(formattedRepos)
+      }
+      // Check for data.repositories format
+      else if (data.repositories && Array.isArray(data.repositories)) {
         const formattedRepos = data.repositories.map((repo: Repository) => ({
           ...repo,
           branches: repo.branches || ["main"],

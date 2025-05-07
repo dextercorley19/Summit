@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useToast } from "@/hooks/use-toast"
+import { API_BASE_URL } from "@/lib/utils"
 
 interface Message {
   id: string
@@ -90,15 +91,15 @@ export function ChatInterface({ selectedRepo, githubToken }: ChatInterfaceProps)
 
     try {
       // Call the backend API for chat
-      const response = await fetch("http://localhost:8000/api/chat", {
+      const response = await fetch(`${API_BASE_URL}/api/chat`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${githubToken}`,
+          "GitHub-Token": githubToken,
         },
         body: JSON.stringify({
-          question: input,
           repository: selectedRepo,
+          question: input
         }),
       })
 
