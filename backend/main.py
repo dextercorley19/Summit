@@ -5,7 +5,6 @@ from pydantic_ai.mcp import MCPServerStdio
 from fastapi.middleware.cors import CORSMiddleware
 from typing import List, Dict
 from pydantic import BaseModel
-from settings.constants import LOCAL_FRONTEND_URL
 
 # Set up the MCP server
 # The GITHUB_PERSONAL_ACCESS_TOKEN will be set dynamically per request via server.env
