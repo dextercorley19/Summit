@@ -5,11 +5,13 @@ from typing import List, Dict, Any
 from pydantic_ai import Agent
 from pydantic_ai.mcp import MCPServerStdio
 from services.github_service import GitHubService
+from dotenv import load_dotenv
 
 logger = logging.getLogger(__name__)
 
 class AIService:
     def __init__(self):
+        load_dotenv() # Load environment variables from .env file
         self.github_service = GitHubService()
         # Initialize MCPServerStdio similar to backend/main.py
         # The GITHUB_PERSONAL_ACCESS_TOKEN will be set dynamically per request via self.mcp_server.env
