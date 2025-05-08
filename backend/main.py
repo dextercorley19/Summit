@@ -7,13 +7,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from typing import List, Dict
 from pydantic import BaseModel
 
-from backend.settings.constants import LOCAL_FRONTEND_URL
-
-# Retrieve the GitHub token from environment variables
-token = os.getenv('GITHUB_PERSONAL_ACCESS_TOKEN')
-if not token:
-    raise ValueError("GITHUB_PERSONAL_ACCESS_TOKEN is not set in environment variables.")
-
 # Set up the MCP server
 server = MCPServerStdio(
     command='docker',
