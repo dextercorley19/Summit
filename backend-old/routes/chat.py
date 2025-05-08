@@ -22,18 +22,19 @@ async def chat_with_repository(request: ChatRequest, request_obj: Request, autho
             github_token = authorization.split(" ")[1]
         
         if not github_token:
-            # Fallback to GitHub-Token if Authorization is not present or malformed, for backward compatibility or other clients
-            github_token = request_obj.headers.get("GitHub-Token")
+            # Fallback to X-GitHub-Token if Authorization is not present or malformed, for backward compatibility or other clients
+            github_token = request_obj.headers.get("X-GitHub-Token")
 
         if not github_token:
-            raise HTTPException(status_code=401, detail="GitHub token not provided in Authorization header or GitHub-Token header")
+            raise HTTPException(status_code=401, detail="GitHub token not provided in Authorization (Bearer) header or X-GitHub-Token header")
             
-        ai_service = AIService(github_token)
+        ai_service = AIService()
         
         # Get response from AI with conversation history
         result = await ai_service.chat_with_repo(
             repository=request.repository,
             question=request.question,
+            github_token=github_token,
             messages=request.messages
         )
         
