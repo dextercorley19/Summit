@@ -92,3 +92,8 @@ async def chat_mcp_docker(request: ChatRequest, github_token: str = Header(..., 
             status_code=500,
             detail=f"Error in chat_mcp_docker: {str(e)}"
         )
+if __name__ == "__main__":
+    import uvicorn
+    import os
+    port = int(os.environ.get("PORT", 10000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
