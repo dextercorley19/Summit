@@ -5,7 +5,7 @@ import os
 from dotenv import load_dotenv
 
 # Import routes
-from routes import auth, repositories, chat
+from routes import auth, repositories, chat, analyze
 
 # Setup logging
 logging.basicConfig(
@@ -41,6 +41,7 @@ app.add_middleware(
 app.include_router(auth.router)
 app.include_router(repositories.router)
 app.include_router(chat.router)
+app.include_router(analyze.router)
 
 @app.get("/api/health")
 async def health_check():

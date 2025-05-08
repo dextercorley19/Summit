@@ -46,3 +46,30 @@ class GitHubAuthRequest(BaseModel):
 
 class RepositoriesResponse(BaseModel):
     repositories: List[Repository]
+
+
+class ChunkAnalysis(BaseModel):
+    content_type: str
+    context: str
+    quality_score: float
+    insights: str
+    suggestions: str
+
+
+class FileAnalysis(BaseModel):
+    lint_score: float
+    chunks: Dict[str, ChunkAnalysis]
+    recent_changes: str
+    insights: str
+    suggestions: str
+    repo_context: str
+
+
+class CodeQualityResponse(BaseModel):
+    overall_score: float
+    file_analyses: Dict[str, FileAnalysis]
+    summary: str
+
+
+class AnalyzeRequest(BaseModel):
+    repository: str
