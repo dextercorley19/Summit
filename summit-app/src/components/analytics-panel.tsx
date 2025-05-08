@@ -65,7 +65,7 @@ export function AnalyticsPanel({ selectedRepo, githubToken }: AnalyticsPanelProp
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${githubToken}`,
+          Authorization: `Bearer ${githubToken}`, // Added Authorization header
         },
         body: JSON.stringify({
           repository: selectedRepo,

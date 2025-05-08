@@ -50,7 +50,7 @@ export function UserAuth({ onAuthChange }: UserAuthProps) {
     try {
       const response = await fetch("https://api.github.com/user", {
         headers: {
-          Authorization: `token ${accessToken}`,
+          Authorization: `token ${accessToken}`, // Ensure token is prefixed with 'token '
         },
       })
 

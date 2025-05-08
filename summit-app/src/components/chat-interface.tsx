@@ -96,7 +96,7 @@ export function ChatInterface({ selectedRepo, githubToken }: ChatInterfaceProps)
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${githubToken}`,
+          Authorization: `Bearer ${githubToken}`, // Added Authorization header
         },
         body: JSON.stringify({
           question: input,

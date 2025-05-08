@@ -44,9 +44,16 @@ class GitHubService:
                 # Get branches for each repository
                 branches = self.get_repository_branches(repo_data["full_name"], github_token)
                 
+                # Extract owner information
+                owner_login = repo_data.get("owner", {}).get("login")
+                if not owner_login:
+                    logger.warning(f"Owner login not found for repo: {repo_data['full_name']}. Skipping.")
+                    continue # Skip this repository if owner can't be determined
+
                 repo = Repository(
                     name=repo_data["name"],
                     full_name=repo_data["full_name"],
+                    owner=owner_login, # Populate the owner field
                     description=repo_data.get("description"),
                     default_branch=repo_data.get("default_branch", "main"),
                     branches=branches,

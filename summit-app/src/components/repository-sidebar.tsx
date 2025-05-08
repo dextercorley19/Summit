@@ -86,7 +86,7 @@ export function RepositorySidebar({ onSelectRepo, githubToken }: RepositorySideb
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${githubToken}`,
+          Authorization: `Bearer ${githubToken}`, // Added Authorization header
         },
       })
 

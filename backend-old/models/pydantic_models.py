@@ -20,6 +20,7 @@ class Conversation(BaseModel):
 class Repository(BaseModel):
     name: str
     full_name: str
+    owner: str  # Add owner field
     description: Optional[str] = None
     default_branch: str = "main"
     branches: List[str] = []
