@@ -1,13 +1,14 @@
 from fastapi import FastAPI
-import os
 import asyncio
 from pydantic_ai import Agent
 from pydantic_ai.mcp import MCPServerStdio
 from fastapi.middleware.cors import CORSMiddleware
 from typing import List, Dict
 from pydantic import BaseModel
+from settings.constants import LOCAL_FRONTEND_URL
 
 # Set up the MCP server
+# The GITHUB_PERSONAL_ACCESS_TOKEN will be set dynamically per request via server.env
 server = MCPServerStdio(
     command='docker',
     args=[
@@ -18,17 +19,19 @@ server = MCPServerStdio(
         'GITHUB_PERSONAL_ACCESS_TOKEN',
         'ghcr.io/github/github-mcp-server',
     ],
-    env={
-        'GITHUB_PERSONAL_ACCESS_TOKEN': token
-    }
 )
+
+class TokenRequest(BaseModel):
+    github_token: str
 
 class RepoRequest(BaseModel):
     user_name: str
     repo_name: str
+    github_token: str
 
 class CollabRequest(BaseModel):
     repo_name: str
+    github_token: str
 
 class ChatRequest(BaseModel):
     github_token: str
@@ -52,26 +55,41 @@ async def root():
     return "Welcome to the Git-SummitAgent Alpha API! Hear over to the /docs for a list of our **agentic** endpoints."
 
 @app.get("/count-repositories")
-async def count_repositories():
-    async with agent.run_mcp_servers():
-        # Run a sample query
-        result = await agent.run('Count how many repositories I have.')
+async def count_repositories(request: TokenRequest):
+    original_env = server.env
+    server.env = {'GITHUB_PERSONAL_ACCESS_TOKEN': request.github_token}
+    try:
+        async with agent.run_mcp_servers():
+            # Run a sample query
+            result = await agent.run('Count how many repositories I have.')
+    finally:
+        server.env = original_env
     
     return result.output
 
 @app.get("/get-commit-history")
 async def get_commit_history(request: RepoRequest):
-    async with agent.run_mcp_servers():
-        # Run a sample query
-        result = await agent.run(f'Fetch the commit history for user {request.user_name} in the {request.repo_name} repo.')
+    original_env = server.env
+    server.env = {'GITHUB_PERSONAL_ACCESS_TOKEN': request.github_token}
+    try:
+        async with agent.run_mcp_servers():
+            # Run a sample query
+            result = await agent.run(f'Fetch the commit history for user {request.user_name} in the {request.repo_name} repo.')
+    finally:
+        server.env = original_env
     
     return result.output
 
 @app.get("/get-contributors")
 async def get_collaborators(request: CollabRequest):
-    async with agent.run_mcp_servers():
-        # Run a sample query
-        result = await agent.run(f'List the contributors in the {request.repo_name} repo.')
+    original_env = server.env
+    server.env = {'GITHUB_PERSONAL_ACCESS_TOKEN': request.github_token}
+    try:
+        async with agent.run_mcp_servers():
+            # Run a sample query
+            result = await agent.run(f'List the contributors in the {request.repo_name} repo.')
+    finally:
+        server.env = original_env
     
     return result.output
 
@@ -84,7 +102,12 @@ async def process_query(request: ChatRequest):
         conversation += f"{role}: {msg['content']}\n"
     conversation += f"User: {request.question}\n"
 
-    async with agent.run_mcp_servers():
-        result = await agent.run(conversation)
+    original_env = server.env
+    server.env = {'GITHUB_PERSONAL_ACCESS_TOKEN': request.github_token}
+    try:
+        async with agent.run_mcp_servers():
+            result = await agent.run(conversation)
+    finally:
+        server.env = original_env
     
     return {"response": result.output}
