@@ -1,5 +1,4 @@
-\
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Header
 from models.pydantic_models import AnalyzeRequest, CodeQualityResponse, FileAnalysis, ChunkAnalysis
 import logging
 
@@ -7,14 +6,21 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/analyze", tags=["analysis"])
 
 @router.post("", response_model=CodeQualityResponse)
-async def analyze_repository(request: AnalyzeRequest, request_obj: Request):
+async def analyze_repository(request: AnalyzeRequest, request_obj: Request, authorization: str = Header(None, alias="Authorization")):
     """
     Analyze a GitHub repository for code quality.
     """
     try:
-        github_token = request_obj.headers.get("GitHub-Token")
+        github_token = None
+        if authorization and authorization.startswith("Bearer "):
+            github_token = authorization.split(" ")[1]
+
         if not github_token:
-            raise HTTPException(status_code=401, detail="GitHub token not provided")
+            # Fallback to GitHub-Token if Authorization is not present or malformed
+            github_token = request_obj.headers.get("GitHub-Token")
+
+        if not github_token:
+            raise HTTPException(status_code=401, detail="GitHub token not provided in Authorization header or GitHub-Token header")
 
         # TODO: Implement actual repository analysis logic using ai_service or a new service
         # For now, returning mock data based on the frontend's expected structure

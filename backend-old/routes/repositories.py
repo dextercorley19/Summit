@@ -8,8 +8,11 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/repositories", tags=["repositories"])
 
-async def get_github_service(github_token: str = Header(..., description="GitHub Personal Access Token")):
-    """Dependency to get GitHub service from token"""
+async def get_github_service(authorization: str = Header(..., description="GitHub Personal Access Token in Bearer format")):
+    """Dependency to get GitHub service from Authorization header"""
+    if not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Invalid authorization scheme. Use Bearer token.")
+    github_token = authorization.split(" ")[1]
     service = GitHubService(github_token)
     if not service.validate_token():
         raise HTTPException(status_code=401, detail="Invalid GitHub token")
@@ -95,4 +98,4 @@ async def get_file_content(
         raise
     except Exception as e:
         logger.error(f"Error fetching file content: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e)) 
+        raise HTTPException(status_code=500, detail=str(e))

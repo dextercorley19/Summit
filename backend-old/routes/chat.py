@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, BackgroundTasks, Request
+from fastapi import APIRouter, HTTPException, BackgroundTasks, Request, Header
 from models.pydantic_models import ChatRequest, ChatResponse
 from services.ai_service import AIService
 from services.conversation_service import ConversationService
@@ -12,15 +12,21 @@ router = APIRouter(prefix="/api/chat", tags=["chat"])
 conversation_service = ConversationService()
 
 @router.post("", response_model=ChatResponse)
-async def chat_with_repository(request: ChatRequest, request_obj: Request):
+async def chat_with_repository(request: ChatRequest, request_obj: Request, authorization: str = Header(None, alias="Authorization")):
     """
     Chat with a GitHub repository using AI
     """
     try:
-        # Initialize AI service with the GitHub token from the header
-        github_token = request_obj.headers.get("GitHub-Token")
+        github_token = None
+        if authorization and authorization.startswith("Bearer "):
+            github_token = authorization.split(" ")[1]
+        
         if not github_token:
-            raise HTTPException(status_code=401, detail="GitHub token not provided")
+            # Fallback to GitHub-Token if Authorization is not present or malformed, for backward compatibility or other clients
+            github_token = request_obj.headers.get("GitHub-Token")
+
+        if not github_token:
+            raise HTTPException(status_code=401, detail="GitHub token not provided in Authorization header or GitHub-Token header")
             
         ai_service = AIService(github_token)
         
@@ -124,4 +130,4 @@ async def get_conversation(conversation_id: str):
         raise
     except Exception as e:
         logger.error(f"Error retrieving conversation: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e)) 
+        raise HTTPException(status_code=500, detail=str(e))
