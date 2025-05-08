@@ -90,7 +90,9 @@ export function ChatInterface({ selectedRepo, githubToken }: ChatInterfaceProps)
 
     try {
       // Call the backend API for chat
-      const response = await fetch("http://localhost:8000/api/chat", {
+      // TODO: Replace with environment variable for backend URL
+      const backendApiUrl = process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:8000";
+      const response = await fetch(`${backendApiUrl}/api/chat`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
