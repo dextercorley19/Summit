@@ -43,7 +43,7 @@ agent = Agent(model='openai:gpt-4.1-mini', mcp_servers=[server])
 # Allow cross-origin resource sharing between local api deployment and frontend deployment
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[LOCAL_FRONTEND_URL, "www.summit-agent.online"],
+    allow_origins=["www.summit-agent.online"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
