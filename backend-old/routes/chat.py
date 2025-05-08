@@ -30,12 +30,28 @@ async def chat_with_repository(request: ChatRequest, request_obj: Request, autho
             
         ai_service = AIService()
         
+        conversation_id = request.conversation_id
+        messages = request.messages
+
+        if conversation_id:
+            conversation = conversation_service.get_conversation(conversation_id)
+            if conversation:
+                messages = [msg.model_dump() for msg in conversation.messages] # Use model_dump()
+            else: # If conversation_id is provided but not found, treat as a new conversation
+                conversation_id = None 
+        
+        if not conversation_id: # Create a new conversation if no ID or not found
+            conversation_id = str(uuid.uuid4())
+
+        # Add current question to messages for AI service
+        current_messages_for_ai = messages + [{"role": "user", "content": request.question}]
+
         # Get response from AI with conversation history
         result = await ai_service.chat_with_repo(
             repository=request.repository,
-            question=request.question,
+            question=request.question, # Still pass the individual question for context if needed by the AI service
             github_token=github_token,
-            messages=request.messages
+            messages=current_messages_for_ai # Pass the full history
         )
         
         # Extract the actual response content from RunResult if needed
@@ -44,14 +60,27 @@ async def chat_with_repository(request: ChatRequest, request_obj: Request, autho
         else:
             # Try to get content from the response object
             if hasattr(result, '_all_messages'):
-                messages = result._all_messages
-                if len(messages) > 0:
-                    last_message = messages[-1]
+                raw_messages = result._all_messages
+                if len(raw_messages) > 0:
+                    last_message = raw_messages[-1]
                     if hasattr(last_message, 'parts') and len(last_message.parts) > 0:
                         last_part = last_message.parts[-1]
                         if hasattr(last_part, 'content'):
                             clean_response = last_part.content
-                            return ChatResponse(response=clean_response)
+                            # Save conversation
+                            conversation_service.add_message_to_conversation(
+                                conversation_id=conversation_id,
+                                repo_name=request.repository,
+                                role="user",
+                                content=request.question
+                            )
+                            conversation_service.add_message_to_conversation(
+                                conversation_id=conversation_id,
+                                repo_name=request.repository,
+                                role="assistant",
+                                content=clean_response
+                            )
+                            return ChatResponse(response=clean_response, conversation_id=conversation_id)
             
             # If that fails, try regex patterns
             result_str = str(result)
@@ -71,8 +100,22 @@ async def chat_with_repository(request: ChatRequest, request_obj: Request, autho
         
         # Log the processed response for debugging
         logger.info(f"Processed AI response: {clean_response}")
+
+        # Save conversation for all other cases
+        conversation_service.add_message_to_conversation(
+            conversation_id=conversation_id,
+            repo_name=request.repository,
+            role="user",
+            content=request.question
+        )
+        conversation_service.add_message_to_conversation(
+            conversation_id=conversation_id,
+            repo_name=request.repository,
+            role="assistant",
+            content=clean_response
+        )
         
-        return ChatResponse(response=clean_response)
+        return ChatResponse(response=clean_response, conversation_id=conversation_id)
     except Exception as e:
         logger.error(f"Error in chat endpoint: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))

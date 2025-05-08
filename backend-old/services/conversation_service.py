@@ -84,6 +84,35 @@ class ConversationService:
         
         return conversation
     
+    def add_message_to_conversation(self, conversation_id: str, repo_name: str, role: str, content: str) -> Optional[Conversation]:
+        """Add a message to a conversation, creating the conversation if it doesn't exist."""
+        conversation = self.get_conversation(conversation_id)
+        
+        if not conversation:
+            # If conversation doesn't exist, create a new one with this ID
+            conversation = Conversation(
+                id=conversation_id,
+                repo_name=repo_name,
+                messages=[],
+                created_at=datetime.now(),
+                updated_at=datetime.now()
+            )
+            # Ensure the first message added is the one we are trying to add now.
+            # This avoids creating an empty conversation if the first call is to add a message.
+
+        message = Message(
+            role=role,
+            content=content,
+            timestamp=datetime.now()
+        )
+        
+        conversation.messages.append(message)
+        conversation.updated_at = datetime.now()
+        
+        self._save_conversation(conversation)
+        
+        return conversation
+
     def get_conversations_for_repo(self, repo_name: str) -> List[Conversation]:
         """Get all conversations for a specific repository"""
         conversations = []
@@ -173,4 +202,4 @@ class ConversationService:
         # Save the updated conversation
         self._save_conversation(conversation)
         
-        return conversation 
+        return conversation

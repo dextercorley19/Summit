@@ -28,7 +28,6 @@ async def analyze_repository(request: AnalyzeRequest, request_obj: Request, auth
             raise HTTPException(status_code=401, detail="GitHub token not provided in Authorization header or GitHub-Token header")
 
         logger.info(f"Received analysis request for repository: {request.repository}")
-
         # Define the detailed prompt for the AI
         analysis_prompt = f"""Please analyze the GitHub repository '{request.repository}'.
 Provide a comprehensive code quality analysis. I need the output in a structured JSON format that strictly adheres to the following Pydantic model:
@@ -61,6 +60,7 @@ Provide a comprehensive code quality analysis. I need the output in a structured
 ```
 
 Focus on identifying areas for improvement, potential bugs, code smells, and adherence to best practices.
+When analyzing files, please ensure you are referencing correct file paths as they exist in the repository. You may need to list directory contents to confirm paths before attempting to read files. If you cannot find an expected file, or encounter issues accessing files, please note this in your analysis for the respective file or in the summary, rather than letting it halt your entire analysis.
 For each file, provide specific insights and actionable suggestions.
 If possible, break down the analysis by relevant code chunks (functions, classes, methods).
 The 'overall_score' should be a float between 0.0 and 10.0, representing the perceived quality.

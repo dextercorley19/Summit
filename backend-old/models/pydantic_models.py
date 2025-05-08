@@ -35,10 +35,12 @@ class ChatRequest(BaseModel):
     repository: str
     question: str
     messages: List[Dict[str, str]] = []  # Each message has 'role' and 'content'
+    conversation_id: Optional[str] = None
 
 
 class ChatResponse(BaseModel):
     response: str
+    conversation_id: str
 
 
 class GitHubAuthRequest(BaseModel):

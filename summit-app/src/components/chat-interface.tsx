@@ -27,20 +27,23 @@ export function ChatInterface({ selectedRepo, githubToken }: ChatInterfaceProps)
   const [showScrollButton, setShowScrollButton] = useState(false)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const { toast } = useToast()
+  const [conversationId, setConversationId] = useState<string | null>(null)
 
-  // Add welcome message when repo is selected
+  // Add welcome message when repo is selected and clear conversation ID
   useEffect(() => {
     if (selectedRepo) {
       setMessages([
         {
           id: "welcome",
           role: "assistant",
-          content: `Welcome to the ${selectedRepo} repository chat! How can I help you analyze this codebase today?`,
+          content: `Welcome to the ${selectedRepo} repository chat! I will focus on analyzing the existing files and structure within this repository. How can I assist you today?`,
           timestamp: new Date(),
         },
       ])
+      setConversationId(null) // Reset conversation ID when repo changes
     } else {
       setMessages([])
+      setConversationId(null)
     }
   }, [selectedRepo])
 
@@ -101,6 +104,8 @@ export function ChatInterface({ selectedRepo, githubToken }: ChatInterfaceProps)
         body: JSON.stringify({
           question: input,
           repository: selectedRepo,
+          messages: messages.map(msg => ({ role: msg.role, content: msg.content })), // Send previous messages
+          conversation_id: conversationId, // Send conversation ID
         }),
       })
 
@@ -118,6 +123,9 @@ export function ChatInterface({ selectedRepo, githubToken }: ChatInterfaceProps)
       }
 
       setMessages((prev) => [...prev, assistantMessage])
+      if (data.conversation_id) {
+        setConversationId(data.conversation_id) // Store new/updated conversation ID
+      }
     } catch (error) {
       console.error("Chat error:", error)
 
