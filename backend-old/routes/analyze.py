@@ -28,7 +28,7 @@ async def analyze_repository(request: AnalyzeRequest, request_obj: Request):
                 chunks={
                     "chunk1": ChunkAnalysis(
                         content_type="function",
-                        context="def hello_world():\\n    print(\\"Hello, World!\\")",
+                        context='"def hello_world():\\n    print(\\"Hello, World!\\")',
                         quality_score=9.0,
                         insights="Well-structured function.",
                         suggestions="Consider adding type hints."
