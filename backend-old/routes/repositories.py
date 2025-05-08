@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends, Header
 from typing import Optional, List
-from models.pydantic_models import Repository
+from models.pydantic_models import Repository, RepositoriesResponse
 from services.github_service import GitHubService
 import logging
 
@@ -18,12 +18,12 @@ async def get_github_service(authorization: str = Header(..., description="GitHu
         raise HTTPException(status_code=401, detail="Invalid GitHub token")
     return service
 
-@router.get("", response_model=List[Repository])
+@router.get("", response_model=RepositoriesResponse)
 async def get_repositories(github_service: GitHubService = Depends(get_github_service)):
     """Get all repositories for the authenticated user"""
     try:
         repositories = github_service.get_user_repositories()
-        return repositories
+        return RepositoriesResponse(repositories=repositories)
     except Exception as e:
         logger.error(f"Error fetching repositories: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
